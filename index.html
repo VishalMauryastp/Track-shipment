@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tracking API Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input[type="text"] {
+        width: 300px;
+        padding: 5px;
+      }
+      button {
+        padding: 8px 15px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #response {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tracking API Demo</h1>
+    <form id="shipmentStatusForm">
+      <label for="awbNo">Enter AWB No:</label>
+      <input type="text" id="awbNo" name="awbNo" required />
+      <button type="submit">Get Shipment Status</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+      document
+        .getElementById("shipmentStatusForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const awbNo = document.getElementById("awbNo").value;
+          fetch("http://api.zedexsoftware.in/api/Bright/GetShipmentStatus", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              AWBNO: awbNo,
+            }),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              displayResponse(data);
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              displayResponse({
+                Message: "An error occurred while fetching data.",
+              });
+            });
+        });
+
+      function displayResponse(data) {
+        const responseContainer = document.getElementById("response");
+        responseContainer.innerHTML = "";
+
+        if (data.STATUS === 1) {
+          const shipmentData = data.Data[0];
+          const status = shipmentData.Status;
+          const origin = shipmentData.Origin;
+          const destination = shipmentData.Destination;
+          const message = data.Message;
+
+          const html = `
+          <p>Status: ${status}</p>
+          <p>Origin: ${origin}</p>
+          <p>Destination: ${destination}</p>
+          <p>${message}</p>
+        `;
+          responseContainer.innerHTML = html;
+        } else {
+          responseContainer.innerHTML = `<p>${data.Message}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>
