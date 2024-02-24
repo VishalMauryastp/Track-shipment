@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tracking API Demo</title>
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
       body {
         font-family: Arial, sans-serif;
       }
@@ -32,16 +37,48 @@
       #response {
         margin-top: 20px;
       }
+      .track_heading {
+        text-align: center;
+      }
+      #shipmentStatusForm {
+        display: flex;
+        margin-top: 30px;
+        @media (max-width: 768px) {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        /* border: 2px solid red; */
+      }
+      .b {
+        border: 2px solid red;
+      }
+      .main_box {
+        margin-top: 60px;
+        width: 100%;
+        /* height: 100vh; */
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+      }
+      /* .track_rows{
+
+      } */
     </style>
   </head>
-  <body>
-    <h1>Tracking API Demo</h1>
-    <form id="shipmentStatusForm">
-      <label for="awbNo">Enter AWB No:</label>
-      <input type="text" id="awbNo" name="awbNo" required />
-      <button type="submit">Get Shipment Status</button>
-    </form>
-    <div id="response"></div>
+  <body class="">
+    
+    <div class="main_box">
+      <h1 class="track_heading">Track your shipment</h1>
+      <form id="shipmentStatusForm">
+        <div>
+          <!-- <label for="awbNo">Enter AWB No:</label> -->
+          <input type="text" id="awbNo" name="awbNo" placeholder="Enter your AWB No" required />
+        
+        <button type="submit">Get Shipment Status</button>
+      </form>
+      <div id="response"></div>
+    </div>
 
     <script>
       document
@@ -49,7 +86,12 @@
         .addEventListener("submit", function (event) {
           event.preventDefault();
           const awbNo = document.getElementById("awbNo").value;
-          fetch("https://api.zedexsoftware.in/api/Bright/GetShipmentStatus", {
+          const proxyUrl = "https://cors-anywhere.herokuapp.com/"; // Use CORS Anywhere proxy
+          const apiUrl =
+            "http://api.zedexsoftware.in/api/Bright/GetShipmentStatus";
+          const requestUrl = proxyUrl + apiUrl;
+
+          fetch(requestUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -66,6 +108,7 @@
               return response.json();
             })
             .then((data) => {
+              console.log(data);
               displayResponse(data);
             })
             .catch((error) => {
@@ -82,18 +125,79 @@
 
         if (data.STATUS === 1) {
           const shipmentData = data.Data[0];
-          const status = shipmentData.Status;
-          const origin = shipmentData.Origin;
-          const destination = shipmentData.Destination;
-          const message = data.Message;
-
-          const html = `
-          <p>Status: ${status}</p>
-          <p>Origin: ${origin}</p>
-          <p>Destination: ${destination}</p>
-          <p>${message}</p>
-        `;
-          responseContainer.innerHTML = html;
+          const table = document.createElement("table");
+          table.innerHTML = `
+      <tr class="track_rows">
+        <th>Field</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>AwbNo</td>
+        <td>${shipmentData.AwbNo}</td>
+      </tr>
+      <tr>
+        <td>ConsigneeRefNo</td>
+        <td>${shipmentData.ConsigneeRefNo || "-"}</td>
+      </tr>
+      <tr>
+        <td>Destination</td>
+        <td>${shipmentData.Destination}</td>
+      </tr>
+      <tr>
+        <td>ForwardNo</td>
+        <td>${shipmentData.ForwardNo || "-"}</td>
+      </tr>
+      <tr>
+        <td>NETWORK</td>
+        <td>${shipmentData.NETWORK || "-"}</td>
+      </tr>
+      <tr>
+        <td>Origin</td>
+        <td>${shipmentData.Origin}</td>
+      </tr>
+      <tr>
+        <td>Pieces</td>
+        <td>${shipmentData.Pieces || "-"}</td>
+      </tr>
+      <tr>
+        <td>ReceiveBy</td>
+        <td>${shipmentData.ReceiveBy || "-"}</td>
+      </tr>
+      <tr>
+        <td>Remarks</td>
+        <td>${shipmentData.Remarks || "-"}</td>
+      </tr>
+      <tr>
+        <td>Services</td>
+        <td>${shipmentData.Services || "-"}</td>
+      </tr>
+      <tr>
+        <td>ShipDate</td>
+        <td>${shipmentData.ShipDate}</td>
+      </tr>
+      <tr>
+        <td>ShipTime</td>
+        <td>${shipmentData.ShipTime}</td>
+      </tr>
+      <tr>
+        <td>ShipmentNo</td>
+        <td>${shipmentData.ShipmentNo}</td>
+      </tr>
+      <tr>
+        <td>St_Date</td>
+        <td>${shipmentData.St_Date}</td>
+      </tr>
+      <tr>
+        <td>Status</td>
+        <td>${shipmentData.Status}</td>
+      </tr>
+      <tr>
+        <td>Weight</td>
+        <td>${shipmentData.Weight || "-"}</td>
+      </tr>
+      
+    `;
+          responseContainer.appendChild(table);
         } else {
           responseContainer.innerHTML = `<p>${data.Message}</p>`;
         }
